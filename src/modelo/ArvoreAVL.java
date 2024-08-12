@@ -4,145 +4,187 @@ import app.OrdemServico;
 
 public class ArvoreAVL {
     private NoAVL raiz;
+    private String tipoRotacao;
 
     private int altura(NoAVL N) {
-        if (N == null) return 0;
+        if (N == null)
+            return 0;
         return N.altura;
     }
 
     private NoAVL rotacaoDireita(NoAVL y) {
         NoAVL x = y.esquerdo;
         NoAVL T2 = x.direito;
-
+    
         x.direito = y;
         y.esquerdo = T2;
-
+    
         y.altura = Math.max(altura(y.esquerdo), altura(y.direito)) + 1;
         x.altura = Math.max(altura(x.esquerdo), altura(x.direito)) + 1;
-
+    
+        tipoRotacao = "Rotação direita simples"; // Atualizado
         return x;
     }
 
     private NoAVL rotacaoEsquerda(NoAVL x) {
         NoAVL y = x.direito;
         NoAVL T2 = y.esquerdo;
-
+    
         y.esquerdo = x;
         x.direito = T2;
-
+    
         x.altura = Math.max(altura(x.esquerdo), altura(x.direito)) + 1;
         y.altura = Math.max(altura(y.esquerdo), altura(y.direito)) + 1;
-
+    
+        tipoRotacao = "Rotação esquerda simples"; // Atualizado
         return y;
     }
 
     private int getBalanceamento(NoAVL N) {
-        if (N == null) return 0;
+        if (N == null)
+            return 0;
         return altura(N.esquerdo) - altura(N.direito);
     }
 
-    public void inserir(OrdemServico dado) {
-        raiz = inserir(raiz, dado);
+    public boolean inserir(OrdemServico dado) {
+        boolean[] rotacionou = { false };
+        raiz = inserir(raiz, dado, rotacionou);
+        return rotacionou[0];
     }
 
-    private NoAVL inserir(NoAVL nodo, OrdemServico dado) {
-        if (nodo == null) return new NoAVL(dado);
-
-        if (dado.getCodigo() < nodo.dado.getCodigo()) {
-            nodo.esquerdo = inserir(nodo.esquerdo, dado);
-        } else if (dado.getCodigo() > nodo.dado.getCodigo()) {
-            nodo.direito = inserir(nodo.direito, dado);
+    private NoAVL inserir(NoAVL no, OrdemServico dado, boolean[] rotacionou) {
+        if (no == null) {
+            return new NoAVL(dado);
+        }
+    
+        if (dado.getCodigo() < no.dado.getCodigo()) {
+            no.esquerdo = inserir(no.esquerdo, dado, rotacionou);
+        } else if (dado.getCodigo() > no.dado.getCodigo()) {
+            no.direito = inserir(no.direito, dado, rotacionou);
         } else {
-            return nodo;
+            return no; // Duplicates are not allowed
         }
-
-        nodo.altura = 1 + Math.max(altura(nodo.esquerdo), altura(nodo.direito));
-
-        int balance = getBalanceamento(nodo);
-
-        // Caso Esquerdo-Esquerdo
-        if (balance > 1 && dado.getCodigo() < nodo.esquerdo.dado.getCodigo()) {
-            return rotacaoDireita(nodo);
+    
+        no.altura = 1 + Math.max(altura(no.esquerdo), altura(no.direito));
+    
+        int balanceamento = getBalanceamento(no);
+    
+        // Rotação à direita
+        if (balanceamento > 1 && dado.getCodigo() < no.esquerdo.dado.getCodigo()) {
+            rotacionou[0] = true;
+            return rotacaoDireita(no);
         }
-
-        // Caso Direito-Direito
-        if (balance < -1 && dado.getCodigo() > nodo.direito.dado.getCodigo()) {
-            return rotacaoEsquerda(nodo);
+    
+        // Rotação à esquerda
+        if (balanceamento < -1 && dado.getCodigo() > no.direito.dado.getCodigo()) {
+            rotacionou[0] = true;
+            return rotacaoEsquerda(no);
         }
-
-        // Caso Esquerdo-Direito
-        if (balance > 1 && dado.getCodigo() > nodo.esquerdo.dado.getCodigo()) {
-            nodo.esquerdo = rotacaoEsquerda(nodo.esquerdo);
-            return rotacaoDireita(nodo);
+    
+        // Rotação dupla à direita
+        if (balanceamento > 1 && dado.getCodigo() > no.esquerdo.dado.getCodigo()) {
+            rotacionou[0] = true;
+            no.esquerdo = rotacaoEsquerda(no.esquerdo);
+            return rotacaoDireita(no);
         }
-
-        // Caso Direito-Esquerdo
-        if (balance < -1 && dado.getCodigo() < nodo.direito.dado.getCodigo()) {
-            nodo.direito = rotacaoDireita(nodo.direito);
-            return rotacaoEsquerda(nodo);
+    
+        // Rotação dupla à esquerda
+        if (balanceamento < -1 && dado.getCodigo() < no.direito.dado.getCodigo()) {
+            rotacionou[0] = true;
+            no.direito = rotacaoDireita(no.direito);
+            return rotacaoEsquerda(no);
         }
-
-        return nodo;
+    
+        return no;
     }
 
-    public void remover(int codigo) {
-        raiz = removerNodo(raiz, codigo);
+    public boolean remover(int codigo) {
+        boolean[] rotacionou = { false };
+        raiz = remover(raiz, codigo, rotacionou);
+        return rotacionou[0];
     }
 
-    private NoAVL removerNodo(NoAVL raiz, int codigo) {
-        if (raiz == null) return raiz;
+    private NoAVL remover(NoAVL no, int codigo, boolean[] rotacionou) {
+        if (no == null) {
+            return no;
+        }
 
-        if (codigo < raiz.dado.getCodigo()) {
-            raiz.esquerdo = removerNodo(raiz.esquerdo, codigo);
-        } else if (codigo > raiz.dado.getCodigo()) {
-            raiz.direito = removerNodo(raiz.direito, codigo);
+        if (codigo < no.dado.getCodigo()) {
+            no.esquerdo = remover(no.esquerdo, codigo, rotacionou);
+        } else if (codigo > no.dado.getCodigo()) {
+            no.direito = remover(no.direito, codigo, rotacionou);
         } else {
-            if ((raiz.esquerdo == null) || (raiz.direito == null)) {
+            if ((no.esquerdo == null) || (no.direito == null)) {
                 NoAVL temp = null;
-                if (temp == raiz.esquerdo) temp = raiz.direito;
-                else temp = raiz.esquerdo;
+                if (temp == no.esquerdo) {
+                    temp = no.direito;
+                } else {
+                    temp = no.esquerdo;
+                }
 
                 if (temp == null) {
-                    temp = raiz;
-                    raiz = null;
-                } else raiz = temp;
+                    temp = no;
+                    no = null;
+                } else {
+                    no = temp;
+                }
             } else {
-                NoAVL temp = minValorNodo(raiz.direito);
-                raiz.dado = temp.dado;
-                raiz.direito = removerNodo(raiz.direito, temp.dado.getCodigo());
+                NoAVL temp = getMenorNoAVL(no.direito);
+                no.dado = temp.dado;
+                no.direito = remover(no.direito, temp.dado.getCodigo(), rotacionou);
             }
         }
 
-        if (raiz == null) return raiz;
-
-        raiz.altura = Math.max(altura(raiz.esquerdo), altura(raiz.direito)) + 1;
-
-        int balance = getBalanceamento(raiz);
-
-        if (balance > 1 && getBalanceamento(raiz.esquerdo) >= 0) {
-            return rotacaoDireita(raiz);
+        if (no == null) {
+            return no;
         }
 
-        if (balance > 1 && getBalanceamento(raiz.esquerdo) < 0) {
-            raiz.esquerdo = rotacaoEsquerda(raiz.esquerdo);
-            return rotacaoDireita(raiz);
+        no.altura = Math.max(altura(no.esquerdo), altura(no.direito)) + 1;
+
+        int balanceamento = getBalanceamento(no);
+
+        // Rotação à direita
+        if (balanceamento > 1 && getBalanceamento(no.esquerdo) >= 0) {
+            rotacionou[0] = true;
+            return rotacaoDireita(no);
         }
 
-        if (balance < -1 && getBalanceamento(raiz.direito) <= 0) {
-            return rotacaoEsquerda(raiz);
+        // Rotação dupla à direita
+        if (balanceamento > 1 && getBalanceamento(no.esquerdo) < 0) {
+            rotacionou[0] = true;
+            no.esquerdo = rotacaoEsquerda(no.esquerdo);
+            return rotacaoDireita(no);
         }
 
-        if (balance < -1 && getBalanceamento(raiz.direito) > 0) {
-            raiz.direito = rotacaoDireita(raiz.direito);
-            return rotacaoEsquerda(raiz);
+        // Rotação à esquerda
+        if (balanceamento < -1 && getBalanceamento(no.direito) <= 0) {
+            rotacionou[0] = true;
+            return rotacaoEsquerda(no);
         }
 
-        return raiz;
+        // Rotação dupla à esquerda
+        if (balanceamento < -1 && getBalanceamento(no.direito) > 0) {
+            rotacionou[0] = true;
+            no.direito = rotacaoDireita(no.direito);
+            return rotacaoEsquerda(no);
+        }
+
+        return no;
     }
 
-    private NoAVL minValorNodo(NoAVL nodo) {
-        NoAVL atual = nodo;
-        while (atual.esquerdo != null) atual = atual.esquerdo;
+    public String getTipoRotacao() {
+        return tipoRotacao;
+    }
+
+    public void resetarTipoRotacao() {
+        tipoRotacao = "Nenhuma rotação";
+    }
+
+    private NoAVL getMenorNoAVL(NoAVL no) {
+        NoAVL atual = no;
+        while (atual.esquerdo != null) {
+            atual = atual.esquerdo;
+        }
         return atual;
     }
 
@@ -150,22 +192,31 @@ public class ArvoreAVL {
         return buscar(raiz, codigo);
     }
 
-    private OrdemServico buscar(NoAVL nodo, int codigo) {
-        if (nodo == null) return null;
-        if (nodo.dado.getCodigo() == codigo) return nodo.dado;
-        if (nodo.dado.getCodigo() > codigo) return buscar(nodo.esquerdo, codigo);
-        return buscar(nodo.direito, codigo);
+    private OrdemServico buscar(NoAVL no, int codigo) {
+        if (no == null) {
+            return null;
+        }
+
+        if (no.dado.getCodigo() == codigo) {
+            return no.dado;
+        }
+
+        if (no.dado.getCodigo() > codigo) {
+            return buscar(no.esquerdo, codigo);
+        }
+
+        return buscar(no.direito, codigo);
     }
 
     public void emOrdem() {
         emOrdem(raiz);
     }
 
-    private void emOrdem(NoAVL nodo) {
-        if (nodo != null) {
-            emOrdem(nodo.esquerdo);
-            System.out.println(nodo.dado);
-            emOrdem(nodo.direito);
+    private void emOrdem(NoAVL no) {
+        if (no != null) {
+            emOrdem(no.esquerdo);
+            System.out.println(no.dado);
+            emOrdem(no.direito);
         }
     }
 
@@ -173,14 +224,21 @@ public class ArvoreAVL {
         return altura(raiz);
     }
 
-	public String getQuantidade() {
-		return String.valueOf(contarNos(raiz));
-	}
+    private int getAltura(NoAVL no) {
+        if (no == null) {
+            return -1;
+        }
+        return no.altura;
+    }
 
-	private int contarNos(NoAVL nodo) {
-		if (nodo == null) {
-			return 0;
-		}
-		return 1 + contarNos(nodo.esquerdo) + contarNos(nodo.direito);
-	}
+    public String getQuantidade() {
+        return String.valueOf(contarNos(raiz));
+    }
+
+    private int contarNos(NoAVL no) {
+        if (no == null) {
+            return 0;
+        }
+        return 1 + contarNos(no.esquerdo) + contarNos(no.direito);
+    }
 }

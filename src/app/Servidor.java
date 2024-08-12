@@ -29,6 +29,7 @@ public class Servidor {
     }
 
     public void inserir(OrdemServico os) throws IOException {
+        bancoDeDados.resetarTipoRotacao();
         bancoDeDados.inserir(os);
         cache.adicionar(os);
         registrarOperacao("Inserção", os.getCodigo());
@@ -52,7 +53,8 @@ public class Servidor {
 
     private void registrarOperacao(String operacao, int codigo) throws IOException {
         int alturaArvore = bancoDeDados.getAltura();
-        String log = operacao + " - Código: " + codigo + " - Altura da Árvore: " + alturaArvore + "\n";
+        String tipoRotacao = bancoDeDados.getTipoRotacao();
+        String log = operacao + " - Código: " + codigo + " - Altura da Árvore: " + alturaArvore + " - " + tipoRotacao + "\n";
         arquivoLog.write(log);
         arquivoLog.flush();
         System.out.print(log);
