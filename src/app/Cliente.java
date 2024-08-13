@@ -5,83 +5,117 @@ import java.util.Scanner;
 
 public class Cliente {
     private Servidor servidor;
+    private CacheFIFO cache;
+    private Scanner scanner;
 
-    public Cliente(Servidor servidor) {
+    public Cliente(Servidor servidor) throws IOException {
         this.servidor = servidor;
+        this.cache = new CacheFIFO(20);
+        this.scanner = new Scanner(System.in);
+
     }
 
-    public void iniciar() throws IOException {
-        Scanner scanner = new Scanner(System.in);
+    public void buscar() {
+        System.out.print("Digite o código da Ordem de Serviço a ser buscada: ");
+        int codigo = scanner.nextInt();
+        scanner.nextLine(); // Limpar o buffer
 
-        while (true) {
-            System.out.println("Escolha uma opção:");
-            System.out.println("1. Buscar Ordem de Serviço");
-            System.out.println("2. Cadastrar Ordem de Serviço");
-            System.out.println("3. Alterar Ordem de Serviço");
-            System.out.println("4. Remover Ordem de Serviço");
-            System.out.println("5. Listar Ordens de Serviço");
-            System.out.println("6. Quantidade de Ordens de Serviço");
-            System.out.println("0. Sair");
-
-            int opcao = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer
-
-            switch (opcao) {
-                case 1:
-                    System.out.print("Digite o código da Ordem de Serviço: ");
-                    int codigoBusca = scanner.nextInt();
-                    OrdemServico osBusca = servidor.buscar(codigoBusca);
-                    if (osBusca != null) {
-                        System.out.println(osBusca);
-                    } else {
-                        System.out.println("Ordem de Serviço não encontrada.");
-                    }
-                    break;
-                case 2:
-                    System.out.print("Digite o código: ");
-                    int codigoCadastro = scanner.nextInt();
-                    scanner.nextLine(); // Limpar o buffer
-                    System.out.print("Digite o nome: ");
-                    String nome = scanner.nextLine();
-                    System.out.print("Digite a descrição: ");
-                    String descricao = scanner.nextLine();
-                    System.out.print("Digite a data e hora: ");
-                    String dataHora = scanner.nextLine();
-                    OrdemServico osCadastro = new OrdemServico(codigoCadastro, nome, descricao, dataHora);
-                    servidor.inserir(osCadastro);
-                    break;
-                case 3:
-                    System.out.print("Digite o código da Ordem de Serviço a ser alterada: ");
-                    int codigoAlteracao = scanner.nextInt();
-                    scanner.nextLine(); // Limpar o buffer
-                    System.out.print("Digite o novo nome: ");
-                    String novoNome = scanner.nextLine();
-                    System.out.print("Digite a nova descrição: ");
-                    String novaDescricao = scanner.nextLine();
-                    System.out.print("Digite a nova data e hora: ");
-                    String novaDataHora = scanner.nextLine();
-                    servidor.alterar(codigoAlteracao, novoNome, novaDescricao, novaDataHora);
-                    break;
-                case 4:
-                    System.out.print("Digite o código da Ordem de Serviço a ser removida: ");
-                    int codigoRemocao = scanner.nextInt();
-                    servidor.remover(codigoRemocao);
-                    break;
-                case 5:
-                    servidor.listarOrdemServicos();
-                    break;
-
-                case 6:
-                    System.out.println("Quantidade de Ordens de Serviço: " + servidor.quantidadeOrdensServico());
-                    break;
-
-                case 0:
-                    servidor.fechar();
-                    scanner.close();
-                    return;
-                default:
-                    System.out.println("Opção inválida.");
-            }
+        OrdemServico os = cache.getOrdemServico(codigo);
+        if (os != null) {
+            System.out.println("Ordem de Serviço encontrada na cache:");
+            System.out.println(os);
+            return;
         }
+
+        os = servidor.buscar(codigo);
+        if (os != null) {
+            cache.adicionar(os);
+            System.out.println("Ordem de Serviço encontrada no servidor:");
+            System.out.println(os);
+            return;
+        }
+
+        System.out.println("Ordem de Serviço não encontrada.");
+    }
+
+    public void adicionar() throws IOException {
+        System.out.print("Digite o código da Ordem de Serviço a ser adicionado: ");
+        int codigo = scanner.nextInt();
+        scanner.nextLine(); // Limpar o buffer
+
+        if (isInCache(codigo)) {
+            System.out.println("Ordem de serviço encontrada na cache.");
+            return;
+        }
+
+        if (isInServidor(codigo)) {
+            OrdemServico os = servidor.buscar(codigo);
+            cache.adicionar(os);
+            System.out.println("Ordem de serviço encontrada no servidor, adicionada na cache.");
+            return;
+        }
+
+        System.out.print("Digite o nome da Ordem de Serviço: ");
+        String nome = scanner.nextLine();
+
+        System.out.print("Digite a descrição da Ordem de Serviço: ");
+        String descricao = scanner.nextLine();
+
+        OrdemServico os = new OrdemServico(codigo, nome, descricao);
+        cache.adicionar(os);
+        servidor.inserir(os);
+        System.out.println("Ordem de serviço adicionada no servidor e na cache.");
+    }
+
+    public void alterar() throws IOException {
+        System.out.print("Digite o código da Ordem de Serviço a ser alterada: ");
+        int codigo = scanner.nextInt();
+        scanner.nextLine(); // Limpar o buffer
+
+        if (!isInCache(codigo) && !isInServidor(codigo)) {
+            System.out.println("Ordem de Serviço não encontrada.");
+            return;
+        }
+
+        System.out.print("Digite o novo nome da Ordem de Serviço: ");
+        String nome = scanner.nextLine();
+
+        System.out.print("Digite a nova descrição da Ordem de Serviço: ");
+        String descricao = scanner.nextLine();
+
+        System.out.print("Digite a nova data e hora da Ordem de Serviço: ");
+        String dataHora = scanner.nextLine();
+
+        servidor.alterar(codigo, nome, descricao, dataHora);
+        cache.remover(codigo);
+        cache.adicionar(servidor.buscar(codigo));
+        System.out.println("Ordem de Serviço alterada.");
+    }
+
+    public void remover() throws IOException {
+        System.out.print("Digite o código da Ordem de Serviço a ser removida:");
+        int codigo = scanner.nextInt();
+        scanner.nextLine(); // Limpar o buffer
+
+        if (!isInCache(codigo) && !isInServidor(codigo)) {
+            System.out.println("Ordem de Serviço não encontrada.");
+            return;
+        }
+
+        servidor.remover(codigo);
+        cache.remover(codigo);
+        System.out.println("Ordem de Serviço removida.");
+    }
+
+    private boolean isInCache(int codigo) {
+        return cache.getOrdemServico(codigo) != null;
+    }
+
+    private boolean isInServidor(int codigo) {
+        return servidor.buscar(codigo) != null;
+    }
+
+    public void printCache() {
+        cache.print();
     }
 }

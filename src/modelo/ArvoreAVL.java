@@ -22,7 +22,7 @@ public class ArvoreAVL {
         y.altura = Math.max(altura(y.esquerdo), altura(y.direito)) + 1;
         x.altura = Math.max(altura(x.esquerdo), altura(x.direito)) + 1;
     
-        tipoRotacao = "Rotação direita simples"; // Atualizado
+        // tipoRotacao = "Rotação direita";
         return x;
     }
 
@@ -34,9 +34,8 @@ public class ArvoreAVL {
         x.direito = T2;
     
         x.altura = Math.max(altura(x.esquerdo), altura(x.direito)) + 1;
-        y.altura = Math.max(altura(y.esquerdo), altura(y.direito)) + 1;
-    
-        tipoRotacao = "Rotação esquerda simples"; // Atualizado
+        y.altura = Math.max(altura(y.esquerdo), altura(y.direito)) + 1;    
+        // tipoRotacao = "Rotação esquerda";
         return y;
     }
 
@@ -72,12 +71,14 @@ public class ArvoreAVL {
         // Rotação à direita
         if (balanceamento > 1 && dado.getCodigo() < no.esquerdo.dado.getCodigo()) {
             rotacionou[0] = true;
+            tipoRotacao = "Rotação direita simples";
             return rotacaoDireita(no);
         }
     
         // Rotação à esquerda
         if (balanceamento < -1 && dado.getCodigo() > no.direito.dado.getCodigo()) {
             rotacionou[0] = true;
+            tipoRotacao = "Rotação esquerda simples";
             return rotacaoEsquerda(no);
         }
     
@@ -85,6 +86,7 @@ public class ArvoreAVL {
         if (balanceamento > 1 && dado.getCodigo() > no.esquerdo.dado.getCodigo()) {
             rotacionou[0] = true;
             no.esquerdo = rotacaoEsquerda(no.esquerdo);
+            tipoRotacao = "Rotação direita dupla";
             return rotacaoDireita(no);
         }
     
@@ -92,6 +94,7 @@ public class ArvoreAVL {
         if (balanceamento < -1 && dado.getCodigo() < no.direito.dado.getCodigo()) {
             rotacionou[0] = true;
             no.direito = rotacaoDireita(no.direito);
+            tipoRotacao = "Rotação esquerda dupla";
             return rotacaoEsquerda(no);
         }
     
@@ -115,7 +118,7 @@ public class ArvoreAVL {
             no.direito = remover(no.direito, codigo, rotacionou);
         } else {
             if ((no.esquerdo == null) || (no.direito == null)) {
-                NoAVL temp = null;
+                NoAVL temp = no;
                 if (temp == no.esquerdo) {
                     temp = no.direito;
                 } else {
@@ -146,6 +149,7 @@ public class ArvoreAVL {
         // Rotação à direita
         if (balanceamento > 1 && getBalanceamento(no.esquerdo) >= 0) {
             rotacionou[0] = true;
+            tipoRotacao = "Rotação direita simples";
             return rotacaoDireita(no);
         }
 
@@ -153,12 +157,14 @@ public class ArvoreAVL {
         if (balanceamento > 1 && getBalanceamento(no.esquerdo) < 0) {
             rotacionou[0] = true;
             no.esquerdo = rotacaoEsquerda(no.esquerdo);
+            tipoRotacao = "Rotação direita dupla";
             return rotacaoDireita(no);
         }
 
         // Rotação à esquerda
         if (balanceamento < -1 && getBalanceamento(no.direito) <= 0) {
             rotacionou[0] = true;
+            tipoRotacao = "Rotação esquerda simples";
             return rotacaoEsquerda(no);
         }
 
@@ -166,6 +172,7 @@ public class ArvoreAVL {
         if (balanceamento < -1 && getBalanceamento(no.direito) > 0) {
             rotacionou[0] = true;
             no.direito = rotacaoDireita(no.direito);
+            tipoRotacao = "Rotação esquerda dupla";
             return rotacaoEsquerda(no);
         }
 
@@ -224,7 +231,7 @@ public class ArvoreAVL {
         return altura(raiz);
     }
 
-    private int getAltura(NoAVL no) {
+    public int getAltura(NoAVL no) {
         if (no == null) {
             return -1;
         }

@@ -18,7 +18,7 @@ public class CacheFIFO {
         cache.addLast(os);
     }
 
-    public OrdemServico obter(int codigo) {
+    public OrdemServico getOrdemServico(int codigo) {
         for (OrdemServico os : cache) {
             if (os.getCodigo() == codigo) {
                 return os;
@@ -27,10 +27,25 @@ public class CacheFIFO {
         return null;
     }
 
-    public void mostrarCache() {
-        System.out.println("Conteúdo da Cache:");
+    public boolean remover(int codigo) {
         for (OrdemServico os : cache) {
-            System.out.println(os);
+            if (os.getCodigo() == codigo) {
+                cache.remove(os);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void print() {
+        System.out.println("Conteúdo da Cache:");
+        if (cache.isEmpty()) {
+            System.out.println("Cache vazia.");
+
+        } else {
+            for (OrdemServico os : cache) {
+                System.out.println(os);
+            }
         }
         System.out.println();
     }
