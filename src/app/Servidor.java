@@ -52,7 +52,7 @@ public class Servidor {
     private void registrarOperacao(String operacao, int codigo) throws IOException {
         int alturaArvore = bancoDeDados.getAltura();
         String tipoRotacao = bancoDeDados.getTipoRotacao();
-        String log = operacao + " - Código: " + codigo + " - Altura da Árvore: " + alturaArvore + " - " + tipoRotacao + "\n";
+        String log = operacao + " - Código: " + codigo + " - Altura da Árvore: " + (alturaArvore - 1) + " - " + tipoRotacao + "\n";
 
         arquivoLog.write(log);
         arquivoLog.flush();

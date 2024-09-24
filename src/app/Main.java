@@ -9,7 +9,7 @@ public class Main {
             Servidor servidor = new Servidor();
 
             // Adiciona 60 ordens de serviço na base de dados
-            for (int i = 1; i <= 10; i++) {
+            for (int i = 1; i <= 60; i++) {
                 OrdemServico os = new OrdemServico(i, "Ordem " + i, "Descrição " + i);
                 servidor.inserir(os);
             }
@@ -22,6 +22,7 @@ public class Main {
 
             while (true) {
 
+                System.out.println("=====================================");
                 cliente.printCache();
 
                 System.out.println("Escolha uma opção:");
@@ -55,7 +56,7 @@ public class Main {
                         break;
 
                     case 6:
-                        servidor.quantidadeOrdensServico();
+                        System.out.println(servidor.quantidadeOrdensServico());
                         break;
 
                     case 0:

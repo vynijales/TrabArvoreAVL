@@ -21,6 +21,7 @@ public class Cliente {
         scanner.nextLine(); // Limpar o buffer
 
         OrdemServico os = cache.getOrdemServico(codigo);
+        System.out.println();
         if (os != null) {
             System.out.println("Ordem de Serviço encontrada na cache:");
             System.out.println(os);
@@ -42,6 +43,9 @@ public class Cliente {
         System.out.print("Digite o código da Ordem de Serviço a ser adicionado: ");
         int codigo = scanner.nextInt();
         scanner.nextLine(); // Limpar o buffer
+
+        System.out.println();
+
 
         if (isInCache(codigo)) {
             System.out.println("Ordem de serviço encontrada na cache.");
