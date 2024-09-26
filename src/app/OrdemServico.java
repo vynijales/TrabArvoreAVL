@@ -67,11 +67,7 @@ public class OrdemServico {
     
         @Override
         public String toString() {
-            return "OrdemServico:" + "\n"
-                + "[codigo=" + codigo + ",\n"
-                + "descricao=" + descricao + ",\n"
-                + "dataHora=" + dataHora+ ",\n"
-                + "nome=" + nome + "]\n";
+            return "OrdemServico -> Código " + codigo + ", nome " + nome + ", descricao " + descricao + " - " + dataHora;
         }
     
 }

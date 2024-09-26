@@ -8,8 +8,8 @@ public class Main {
         try {
             Servidor servidor = new Servidor();
 
-            // Adiciona 60 ordens de serviço na base de dados
-            for (int i = 1; i <= 60; i++) {
+            // Adiciona 70 ordens de serviço na base de dados
+            for (int i = 1; i <= 70; i++) {
                 OrdemServico os = new OrdemServico(i, "Ordem " + i, "Descrição " + i);
                 servidor.inserir(os);
             }
@@ -24,6 +24,7 @@ public class Main {
 
                 System.out.println("=====================================");
                 cliente.printCache();
+                System.out.println("=====================================");
 
                 System.out.println("Escolha uma opção:");
                 System.out.println("1. Buscar Ordem de Serviço");

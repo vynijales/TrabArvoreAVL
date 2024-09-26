@@ -5,12 +5,14 @@ import java.util.Scanner;
 
 public class Cliente {
     private Servidor servidor;
-    private CacheFIFO cache;
+    // private CacheFIFO cache;
+    private CacheHash cache;
     private Scanner scanner;
 
     public Cliente(Servidor servidor) throws IOException {
         this.servidor = servidor;
-        this.cache = new CacheFIFO(20);
+        // this.cache = new CacheFIFO(20);
+        this.cache = new CacheHash();
         this.scanner = new Scanner(System.in);
 
     }
@@ -20,7 +22,8 @@ public class Cliente {
         int codigo = scanner.nextInt();
         scanner.nextLine(); // Limpar o buffer
 
-        OrdemServico os = cache.getOrdemServico(codigo);
+        // OrdemServico os = cache.getOrdemServico(codigo);
+        OrdemServico os = cache.buscar(codigo);
         System.out.println();
         if (os != null) {
             System.out.println("Ordem de Serviço encontrada na cache:");
@@ -30,7 +33,7 @@ public class Cliente {
 
         os = servidor.buscar(codigo);
         if (os != null) {
-            cache.adicionar(os);
+            cache.inserir(os);
             System.out.println("Ordem de Serviço encontrada no servidor:");
             System.out.println(os);
             return;
@@ -54,7 +57,7 @@ public class Cliente {
 
         if (isInServidor(codigo)) {
             OrdemServico os = servidor.buscar(codigo);
-            cache.adicionar(os);
+            cache.inserir(os);
             System.out.println("Ordem de serviço encontrada no servidor, adicionada na cache.");
             return;
         }
@@ -66,7 +69,7 @@ public class Cliente {
         String descricao = scanner.nextLine();
 
         OrdemServico os = new OrdemServico(codigo, nome, descricao);
-        cache.adicionar(os);
+        cache.inserir(os);
         servidor.inserir(os);
         System.out.println("Ordem de serviço adicionada no servidor e na cache.");
     }
@@ -77,7 +80,7 @@ public class Cliente {
         scanner.nextLine(); // Limpar o buffer
 
         if (!isInCache(codigo) && !isInServidor(codigo)) {
-            System.out.println("Ordem de Serviço não encontrada.");
+            System.out.println("Ordem de Serviço não existe.");
             return;
         }
 
@@ -87,12 +90,12 @@ public class Cliente {
         System.out.print("Digite a nova descrição da Ordem de Serviço: ");
         String descricao = scanner.nextLine();
 
-        System.out.print("Digite a nova data e hora da Ordem de Serviço: ");
-        String dataHora = scanner.nextLine();
+        System.out.println("A data e hora da Ordem de Serviço serão atualizadas para a hora atual.");
 
-        servidor.alterar(codigo, nome, descricao, dataHora);
+        OrdemServico osNova = new OrdemServico(codigo, nome, descricao);
+        servidor.alterar(codigo, osNova);
         cache.remover(codigo);
-        cache.adicionar(servidor.buscar(codigo));
+        cache.inserir(servidor.buscar(codigo));
         System.out.println("Ordem de Serviço alterada.");
     }
 
@@ -112,7 +115,7 @@ public class Cliente {
     }
 
     private boolean isInCache(int codigo) {
-        return cache.getOrdemServico(codigo) != null;
+        return cache.buscar(codigo) != null;
     }
 
     private boolean isInServidor(int codigo) {
@@ -120,6 +123,6 @@ public class Cliente {
     }
 
     public void printCache() {
-        cache.print();
+        cache.imprimir();
     }
 }
